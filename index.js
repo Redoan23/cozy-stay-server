@@ -29,9 +29,20 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
 
-        const roomCollection= client.db('hotelDB').collection('room-details')
+        const roomCollection = client.db('hotelDB').collection('room-details')
 
+        app.get('/rooms/filter', async (req, res) => {
+            const from = parseInt(req.query.from)
+            const to = parseInt(req.query.to)
+            console.log(from, to)
+            const result = await roomCollection.find({ ppn: { $gte: from, $lte: to } }).toArray()
+            res.send(result)
+        })
 
+        app.get('/rooms', async (req, res) => {
+            const result = await roomCollection.find().toArray()
+            res.send(result)
+        })
 
 
 
