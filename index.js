@@ -1,7 +1,7 @@
 const express = require('express')
 const cors = require('cors')
 require('dotenv').config()
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express()
 const port = process.env.PORT || 5000
 
@@ -34,13 +34,35 @@ async function run() {
         app.get('/rooms/filter', async (req, res) => {
             const from = parseInt(req.query.from)
             const to = parseInt(req.query.to)
-            console.log(from, to)
+            // console.log(from, to)
             const result = await roomCollection.find({ ppn: { $gte: from, $lte: to } }).toArray()
             res.send(result)
         })
 
         app.get('/rooms', async (req, res) => {
             const result = await roomCollection.find().toArray()
+            res.send(result)
+        })
+
+        app.get('/rooms/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const result = await roomCollection.findOne(query)
+            // console.log(result)
+            res.send(result)
+        })
+
+        app.put('/rooms/:id', async (req, res) => {
+            const id = req.params.id
+            const data = req.body
+            const filter = { _id: new ObjectId(id) }
+            const options = { upsert: true }
+            const updatedDoc = {
+                $set: {
+                    availability: 'Not Available'
+                }
+            }
+            const result = await roomCollection.updateOne(filter, updatedDoc, options)
             res.send(result)
         })
 
