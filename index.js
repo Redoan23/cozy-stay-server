@@ -103,16 +103,24 @@ async function run() {
             res.send(result)
         })
 
+        // this is for the review collection
+
         app.post('/user/review', async (req, res) => {
-            const review = req.body.review
+            const review = req.body.reviewData
+            console.log(review)
             const result = await reviewCollection.insertOne(review)
             res.send(result)
         })
 
-        app.get('/user/review', async (req, res) => {
-            const reviews = await reviewCollection.find().toArray()
+        app.get('/user/review/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { reviewId : id }
+            const reviews = await reviewCollection.find(query).toArray()
             res.send(reviews)
         })
+
+
+
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
