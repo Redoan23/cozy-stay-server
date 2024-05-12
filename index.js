@@ -62,38 +62,45 @@ async function run() {
 
         app.post('/booked/user', async (req, res) => {
             const data = req.body
-            console.log(data)
             const result = await usersBookedCollection.insertOne(data)
             res.send(result)
         })
 
         app.put('/booked/user/:id', async (req, res) => {
             const id = req.params.id
-            const updatedDate = req.body
+            const updatedDate = req.body.date
+            console.log(updatedDate)
             const query = { _id: new ObjectId(id) }
             const updatedDoc = {
                 $set: {
                     startDate: updatedDate
                 }
             }
-            const result = await usersBookedCollection.updateOne(query, updatedDate)
+            const result = await usersBookedCollection.updateOne(query, updatedDoc)
+            res.send(result)
+        })
+
+        app.delete('/booked/user/:id', async (req, res) => {
+            const id = req.params.id
+            const query = { _id: new ObjectId(id) }
+            const result = await usersBookedCollection.deleteOne(query)
+            res.send(result)
         })
 
         app.put('/rooms/:id', async (req, res) => {
             const id = req.params.id
             const data = req.body
+            console.log(data)
             const filter = { _id: new ObjectId(id) }
             const options = { upsert: true }
             const updatedDoc = {
                 $set: {
-                    availability: 'Not Available'
+                    availability: data?.availability === 'Not Available' ? 'yes' : 'Not Available'
                 }
             }
             const result = await roomCollection.updateOne(filter, updatedDoc, options)
             res.send(result)
         })
-
-
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
