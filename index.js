@@ -30,6 +30,7 @@ async function run() {
         await client.connect();
 
         const roomCollection = client.db('hotelDB').collection('room-details')
+        const usersBookedCollection = client.db('hotelDB').collection('booked-rooms-by-user')
 
         app.get('/rooms/filter', async (req, res) => {
             const from = parseInt(req.query.from)
@@ -49,6 +50,13 @@ async function run() {
             const query = { _id: new ObjectId(id) }
             const result = await roomCollection.findOne(query)
             // console.log(result)
+            res.send(result)
+        })
+
+        app.post('/booked/user', async (req, res) => {
+            const data = req.body
+            console.log(data)
+            const result = usersBookedCollection.insertOne(data)
             res.send(result)
         })
 
