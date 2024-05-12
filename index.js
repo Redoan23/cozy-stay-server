@@ -31,6 +31,7 @@ async function run() {
 
         const roomCollection = client.db('hotelDB').collection('room-details')
         const usersBookedCollection = client.db('hotelDB').collection('booked-rooms-by-user')
+        const reviewCollection = client.db('hotelDB').collection('review-collection')
 
         app.get('/rooms/filter', async (req, res) => {
             const from = parseInt(req.query.from)
@@ -100,6 +101,17 @@ async function run() {
             }
             const result = await roomCollection.updateOne(filter, updatedDoc, options)
             res.send(result)
+        })
+
+        app.post('/user/review', async (req, res) => {
+            const review = req.body.review
+            const result = await reviewCollection.insertOne(review)
+            res.send(result)
+        })
+
+        app.get('/user/review', async (req, res) => {
+            const reviews = await reviewCollection.find().toArray()
+            res.send(reviews)
         })
 
         // Send a ping to confirm a successful connection
