@@ -53,6 +53,8 @@ async function run() {
             res.send(result)
         })
 
+        // booking list management 
+
         app.get('/booked/user', async (req, res) => {
             const result = await usersBookedCollection.find().toArray()
             res.send(result)
@@ -63,6 +65,18 @@ async function run() {
             console.log(data)
             const result = await usersBookedCollection.insertOne(data)
             res.send(result)
+        })
+
+        app.put('/booked/user/:id', async (req, res) => {
+            const id = req.params.id
+            const updatedDate = req.body
+            const query = { _id: new ObjectId(id) }
+            const updatedDoc = {
+                $set: {
+                    startDate: updatedDate
+                }
+            }
+            const result = await usersBookedCollection.updateOne(query, updatedDate)
         })
 
         app.put('/rooms/:id', async (req, res) => {
