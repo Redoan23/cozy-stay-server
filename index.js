@@ -12,7 +12,8 @@ app.use(cors({
     origin: [
         'http://localhost:5173',
         'https://cozy-stay-3af7a.web.app',
-        'https://cozy-stay-3af7a.firebaseapp.com'
+        'https://cozy-stay-3af7a.firebaseapp.com',
+        'https://cozy-stay2.netlify.app'
     ],
     credentials: true
 }))
@@ -20,7 +21,6 @@ app.use(express.json())
 app.use(cookieParser())
 
 const logger = (req, res, next) => {
-    // console.log('log-info:', req.method, req.url)
     next()
 }
 
@@ -36,7 +36,6 @@ const verifyToken = (req, res, next) => {
         }
 
         req.user = decoded
-        // console.log(decoded)
         next()
     })
 }
@@ -65,7 +64,7 @@ const cookieOption = {
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
-        // await client.connect();
+        await client.connect();
 
         const roomCollection = client.db('hotelDB').collection('room-details')
         const usersBookedCollection = client.db('hotelDB').collection('booked-rooms-by-user')
@@ -105,6 +104,16 @@ async function run() {
             res.send(result)
         })
 
+        app.get('/rooms/check/:name', async (req, res) => {
+            const name = req.params.name
+            const data = req.body
+            const roomName = data?.roomName
+            const date = data?.date
+            const query = { room_type: name }
+            const getRoom = await roomCollection.findOne(query)
+            res.send(getRoom)
+        })
+
         app.post('/booked/user', async (req, res) => {
             const data = req.body
             const result = await usersBookedCollection.insertOne(data)
@@ -127,6 +136,7 @@ async function run() {
 
         app.delete('/booked/user/:id', async (req, res) => {
             const id = req.params.id
+            console.log(id)
             const query = { _id: new ObjectId(id) }
             const result = await usersBookedCollection.deleteOne(query)
             res.send(result)
@@ -135,13 +145,21 @@ async function run() {
         app.put('/rooms/:id', async (req, res) => {
             const id = req.params.id
             const data = req.body
-            console.log(data)
+            console.log('the api is hit')
+            console.log('start date is', data.startDate)
             const filter = { _id: new ObjectId(id) }
             const options = { upsert: true }
             const updatedDoc = {
                 $set: {
-                    availability: data?.availability === 'Not Available' ? 'yes' : 'Not Available'
+                    availability: data?.availability === 'Not Available' ? 'yes' : 'Not Available',
+
                 }
+            }
+            if (data?.startDate) {
+                updatedDoc.$set.bookedDate = data.startDate;
+            }
+            else {
+                updatedDoc.$unset = { bookedDate: "" }
             }
             const result = await roomCollection.updateOne(filter, updatedDoc, options)
             res.send(result)
@@ -189,7 +207,7 @@ async function run() {
         })
 
         // Send a ping to confirm a successful connection
-        // await client.db("admin").command({ ping: 1 });
+        await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // Ensures that the client will close when you finish/error
